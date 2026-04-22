@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">DieselCalc</string>
+    <string name="widget_description">Ціна дизелю на кордоні та у вигрузці</string>
 </resources>

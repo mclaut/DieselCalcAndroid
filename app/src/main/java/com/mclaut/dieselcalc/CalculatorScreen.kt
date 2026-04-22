@@ -1,5 +1,6 @@
 package com.mclaut.dieselcalc
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -81,7 +82,7 @@ fun CalculatorScreen(
     LaunchedEffect(calculateTrigger) {
         if (calculateTrigger > 0) {
             calculate(
-                icePrice, premium, roadUah, deliveryUah, usdUah, eurUah,
+                context, icePrice, premium, roadUah, deliveryUah, usdUah, eurUah,
                 exciseEur, density, litresPerTruck, comment,
                 onResult = { r, border, delivery ->
                     result = r
@@ -308,6 +309,7 @@ fun CalculatorScreen(
 }
 
 private fun calculate(
+    context: Context,
     icePrice: String, premium: String, roadUah: String, deliveryUah: String,
     usdUah: String, eurUah: String, exciseEur: String, density: String,
     litresPerTruck: String, comment: String,
@@ -350,6 +352,10 @@ private fun calculate(
     }
 
     onResult(result, priceAtBorder, priceAtDelivery)
+
+    // Зберігаємо параметри для віджету і оновлюємо його
+    WidgetPrefs.saveParams(context, premiumD, roadUahD, deliveryUahD, exciseEurD, densityD, litresD)
+    WidgetUpdateWorker.enqueue(context, immediate = true)
 
     onNewEntry(LogEntry(
         comment = comment,
