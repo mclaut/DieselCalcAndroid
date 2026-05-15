@@ -59,11 +59,12 @@ abstract class CurrencyWidget(private val source: CurrencySource) : GlanceAppWid
         val isDark = (ctx.resources.configuration.uiMode and
                 Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
 
-        // Адаптивна палітра.
+        // McLaut brand-палітра: USD = помаранчевий, EUR = темно-індиго,
+        // крос-курс — нейтральний (не з брендової двоколірки, щоб не змішувати).
         val bg         = if (isDark) Color(0xFF000000) else Color(0xFFF2F2F2)
-        val usdColor   = if (isDark) Color(0xFF73D98C) else Color(0xFF1A8C33)
-        val eurColor   = if (isDark) Color(0xFF73C7FF) else Color(0xFF006BD8)
-        val crossColor = if (isDark) Color(0xFFF2C74D) else Color(0xFFA67300)
+        val usdColor   = Brand.Orange
+        val eurColor   = Brand.darkAccent(isDark)
+        val crossColor = if (isDark) Color(0xD9FFFFFF) else Color(0xBF000000)
         val header     = if (isDark) Color(0xB3FFFFFF) else Color(0xB3000000)
         val dim        = if (isDark) Color(0x73FFFFFF) else Color(0x80000000)
 

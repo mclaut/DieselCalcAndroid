@@ -53,12 +53,13 @@ class DieselWidget : GlanceAppWidget() {
         val isDark   = (ctx.resources.configuration.uiMode and
                 Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
 
-        // Адаптивна палітра: темна як було, світла як системні віджети.
+        // McLaut brand-палітра: помаранчевий + темно-індиго. У dark theme
+        // індиго замінюємо на tonal-90 щоб лишався читабельним.
         val bg          = if (isDark) Color(0xFF000000) else Color(0xFFF2F2F2)
-        val orangeMain  = if (isDark) Color(0xFFFFA500) else Color(0xFFD97000)
-        val orangeDim   = if (isDark) Color(0xCCFFA500) else Color(0xCCD97000)
-        val blueMain    = if (isDark) Color(0xFF73C7FF) else Color(0xFF006BD8)
-        val blueDim     = if (isDark) Color(0xCC73C7FF) else Color(0xCC006BD8)
+        val orangeMain  = Brand.Orange
+        val orangeDim   = Brand.Orange.copy(alpha = 0.80f)
+        val brandIndigo = Brand.darkAccent(isDark)
+        val brandIndigoDim = brandIndigo.copy(alpha = 0.80f)
         val iceMain     = if (isDark) Color(0xD9FFFFFF) else Color(0xBF000000)
         val dim         = if (isDark) Color(0x73FFFFFF) else Color(0x80000000)
 
@@ -93,12 +94,12 @@ class DieselWidget : GlanceAppWidget() {
                     // Кордон
                     Text(
                         "Кордон",
-                        style = TextStyle(color = ColorProvider(blueDim), fontSize = 12.sp)
+                        style = TextStyle(color = ColorProvider(brandIndigoDim), fontSize = 12.sp)
                     )
                     Text(
                         border,
                         style = TextStyle(
-                            color      = ColorProvider(blueMain),
+                            color      = ColorProvider(brandIndigo),
                             fontSize   = 22.sp,
                             fontWeight = FontWeight.Bold
                         )
