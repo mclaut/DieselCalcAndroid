@@ -1,6 +1,22 @@
+import com.google.firebase.appdistribution.gradle.firebaseAppDistribution
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.firebase.appdistribution)
+    alias(libs.plugins.google.services)
+}
+
+// firebase.properties — appId + tester groups для Firebase App Distribution.
+// Файл у gitignore (шаблон у firebase.properties.sample). Якщо відсутній,
+// `appDistributionUploadRelease` task падає, але assembleRelease сам по собі
+// продовжує працювати.
+val firebasePropertiesFile = rootProject.file("firebase.properties")
+val firebaseProperties = Properties().apply {
+    if (firebasePropertiesFile.exists()) {
+        firebasePropertiesFile.inputStream().use { load(it) }
+    }
 }
 
 android {
@@ -15,8 +31,8 @@ android {
         applicationId = "com.mclaut.dieselcalc"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -28,6 +44,26 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Firebase App Distribution config — auth береться з Firebase CLI
+            // (`firebase login`), serviceCredentialsFile не використовуємо.
+            // Release notes — build/last-commit.txt, який scripts/distribute-android.sh
+            // генерує з git log перед запуском Gradle.
+            firebaseAppDistribution {
+                appId = firebaseProperties.getProperty("appId", "")
+                groups = firebaseProperties.getProperty("groups", "testers")
+                artifactType = "APK"
+                releaseNotesFile = "${rootProject.projectDir}/build/last-commit.txt"
+            }
+        }
+
+        debug {
+            // Дозволяє швидко закидати debug-збірку тестерам без підпису keystore'м.
+            firebaseAppDistribution {
+                appId = firebaseProperties.getProperty("appId", "")
+                groups = firebaseProperties.getProperty("groups", "testers")
+                artifactType = "APK"
+                releaseNotesFile = "${rootProject.projectDir}/build/last-commit.txt"
+            }
         }
     }
     compileOptions {

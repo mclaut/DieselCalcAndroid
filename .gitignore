@@ -20,3 +20,9 @@ Thumbs.db
 # APK/AAB
 *.apk
 *.aab
+
+# Firebase — реальний appId зберігаємо локально, у репо лише шаблон.
+firebase.properties
+# google-services.json містить OAuth client_info і API key — за конвенцією
+# Firebase його НЕ комітять у відкритий репо; тримаємо локально.
+app/google-services.json

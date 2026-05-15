@@ -25,7 +25,7 @@
             </intent-filter>
         </activity>
 
-        <!-- Glance Widget -->
+        <!-- Diesel розрахунковий віджет -->
         <receiver
             android:name=".DieselWidgetReceiver"
             android:exported="true">
@@ -35,6 +35,51 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/diesel_widget_info" />
+        </receiver>
+
+        <!-- Currency widgets — 4 джерела курсів -->
+        <receiver
+            android:name=".NBUWidgetReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/nbu_widget_info" />
+        </receiver>
+
+        <receiver
+            android:name=".InterbankWidgetReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/interbank_widget_info" />
+        </receiver>
+
+        <receiver
+            android:name=".PrivatCardWidgetReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/privat_card_widget_info" />
+        </receiver>
+
+        <receiver
+            android:name=".PrivatCashWidgetReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/privat_cash_widget_info" />
         </receiver>
 
     </application>

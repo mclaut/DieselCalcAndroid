@@ -1,0 +1,13 @@
+# Firebase App Distribution config — реальні значення в firebase.properties (gitignored).
+#
+# Setup:
+# 1. Скопіюй цей файл у firebase.properties.
+# 2. Створи Android app у Firebase Console з applicationId = com.mclaut.dieselcalc.
+# 3. Скопіюй App ID з Project Settings → General → Your apps.
+# 4. Створи tester group у App Distribution → Testers & groups.
+
+# Формат: 1:NUMBER:android:HEXHASH
+appId=1:000000000000:android:0000000000000000000000
+
+# Comma-separated tester groups (мають існувати у Firebase Console).
+groups=testers

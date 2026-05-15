@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">DieselCalc</string>
     <string name="widget_description">Ціна дизелю на кордоні та у вигрузці</string>
+    <string name="widget_nbu_description">Курси НБУ — USD, EUR, EUR/USD</string>
+    <string name="widget_interbank_description">Курси міжбанк (купівля/продаж)</string>
+    <string name="widget_privat_card_description">Privat24 безготівка (купівля/продаж)</string>
+    <string name="widget_privat_cash_description">Privat24 готівка (купівля/продаж)</string>
 </resources>
