@@ -16,7 +16,15 @@ import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
 import androidx.glance.currentState
-import androidx.glance.layout.*
+import androidx.glance.layout.Alignment
+import androidx.glance.layout.Box
+import androidx.glance.layout.Column
+import androidx.glance.layout.Row
+import androidx.glance.layout.Spacer
+import androidx.glance.layout.fillMaxSize
+import androidx.glance.layout.height
+import androidx.glance.layout.padding
+import androidx.glance.layout.width
 import androidx.glance.state.GlanceStateDefinition
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.FontWeight
@@ -26,14 +34,14 @@ import androidx.glance.unit.ColorProvider
 import java.util.Locale
 
 // === Currency widget — 4 джерела (НБУ / Міжбанк / Privat Card / Privat Cash). ===
-// Кожне джерело має свій GlanceAppWidget + Receiver + xml-config. Дані для всіх
-// тягне один WidgetUpdateWorker і складає в Glance Preferences з префіксом джерела.
+// 1×1 (70dp) square compact layout. Dіта+час повернуті на -90° (як в iOS)
+// у вузькій правій колонці.
 
-enum class CurrencySource(val key: String, val displayName: String, val hasBidAsk: Boolean) {
-    NBU       ("nbu",             "НБУ",              hasBidAsk = false),
-    INTERBANK ("minfin_interbank","Міжбанк",          hasBidAsk = true),
-    PRIVATCARD("privat24_card",   "Privat24 Карта",   hasBidAsk = true),
-    PRIVATCASH("privat24_cash",   "Privat24 Готівка", hasBidAsk = true)
+enum class CurrencySource(val key: String, val displayName: String, val short: String, val hasBidAsk: Boolean) {
+    NBU       ("nbu",              "НБУ",              "НБУ",  hasBidAsk = false),
+    INTERBANK ("minfin_interbank", "Міжбанк",          "Між",  hasBidAsk = true),
+    PRIVATCARD("privat24_card",    "Privat24 Карта",   "Карта", hasBidAsk = true),
+    PRIVATCASH("privat24_cash",    "Privat24 Готівка", "Готів", hasBidAsk = true)
 }
 
 // Ключі: "currency_<source>_<currency>_<field>". Напр. currency_nbu_usd_rate.
@@ -59,95 +67,82 @@ abstract class CurrencyWidget(private val source: CurrencySource) : GlanceAppWid
         val isDark = (ctx.resources.configuration.uiMode and
                 Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
 
-        // McLaut brand-палітра: USD = помаранчевий, EUR = темно-індиго,
-        // крос-курс — нейтральний (не з брендової двоколірки, щоб не змішувати).
+        // McLaut brand-палітра.
         val bg         = if (isDark) Color(0xFF000000) else Color(0xFFF2F2F2)
         val usdColor   = Brand.Orange
         val eurColor   = Brand.darkAccent(isDark)
         val crossColor = if (isDark) Color(0xD9FFFFFF) else Color(0xBF000000)
-        val header     = if (isDark) Color(0xB3FFFFFF) else Color(0xB3000000)
-        val dim        = if (isDark) Color(0x73FFFFFF) else Color(0x80000000)
+        val header     = if (isDark) Color(0xCCFFFFFF) else Color(0xCC000000)
+        val dim        = if (isDark) Color(0x99FFFFFF) else Color(0x99000000)
 
-        val usdBid = prefs[ratePref(source.key, "USD", "bid")]
-        val usdAsk = prefs[ratePref(source.key, "USD", "ask")]
+        val usdBid  = prefs[ratePref(source.key, "USD", "bid")]
+        val usdAsk  = prefs[ratePref(source.key, "USD", "ask")]
         val usdRate = prefs[ratePref(source.key, "USD", "rate")]
-        val eurBid = prefs[ratePref(source.key, "EUR", "bid")]
-        val eurAsk = prefs[ratePref(source.key, "EUR", "ask")]
+        val eurBid  = prefs[ratePref(source.key, "EUR", "bid")]
+        val eurAsk  = prefs[ratePref(source.key, "EUR", "ask")]
         val eurRate = prefs[ratePref(source.key, "EUR", "rate")]
-        val cross  = prefs[crossPref(source.key)]
-        val time   = prefs[timePref(source.key)] ?: ""
-        val date   = prefs[datePref(source.key)] ?: ""
+        val cross   = prefs[crossPref(source.key)]
+        val time    = prefs[timePref(source.key)] ?: ""
+        val date    = prefs[datePref(source.key)] ?: ""
 
         Box(
             modifier = GlanceModifier
                 .fillMaxSize()
                 .background(bg)
-                .padding(start = 12.dp, top = 8.dp, bottom = 8.dp, end = 8.dp)
+                .padding(start = 6.dp, top = 4.dp, bottom = 4.dp, end = 4.dp)
         ) {
             Row(
                 modifier          = GlanceModifier.fillMaxSize(),
                 verticalAlignment = Alignment.Vertical.CenterVertically
             ) {
-                // Ліва колонка — джерело + USD + EUR + крос
+                // Ліва колонка — компактно під 70dp:
+                // [source.short]
+                // USD <значення>  (одна лінія, навіть для bid/ask: "43.6/44.2")
+                // EUR <значення>
+                // €/$ <crossover>
                 Column(modifier = GlanceModifier.defaultWeight()) {
                     Text(
-                        source.displayName,
+                        source.short,
                         style = TextStyle(
                             color      = ColorProvider(header),
-                            fontSize   = 12.sp,
+                            fontSize   = 9.sp,
                             fontWeight = FontWeight.Bold
                         )
                     )
-                    Spacer(GlanceModifier.height(4.dp))
-
-                    // USD
-                    RateRow("USD", usdColor, source.hasBidAsk, usdBid, usdAsk, usdRate)
-                    Spacer(GlanceModifier.height(4.dp))
-
-                    // EUR
-                    RateRow("EUR", eurColor, source.hasBidAsk, eurBid, eurAsk, eurRate)
-
+                    Spacer(GlanceModifier.height(1.dp))
+                    CompactRateRow("$", usdColor, source.hasBidAsk, usdBid, usdAsk, usdRate)
+                    Spacer(GlanceModifier.height(1.dp))
+                    CompactRateRow("€", eurColor, source.hasBidAsk, eurBid, eurAsk, eurRate)
                     if (cross != null) {
-                        Spacer(GlanceModifier.height(4.dp))
-                        Row(verticalAlignment = Alignment.Vertical.CenterVertically) {
-                            Text(
-                                "€/$ ",
-                                style = TextStyle(
-                                    color    = ColorProvider(crossColor.copy(alpha = 0.75f)),
-                                    fontSize = 12.sp
-                                )
+                        Spacer(GlanceModifier.height(1.dp))
+                        Text(
+                            "€/\$ ${String.format(Locale.US, "%.4f", cross)}",
+                            style = TextStyle(
+                                color    = ColorProvider(crossColor),
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Medium
                             )
-                            Text(
-                                String.format(Locale.US, "%.4f", cross),
-                                style = TextStyle(
-                                    color      = ColorProvider(crossColor),
-                                    fontSize   = 19.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            )
-                        }
+                        )
                     }
                 }
 
-                // Права колонка — час+дата вертикальним стеком символів,
-                // прижатим до правого краю. Glance не підтримує rotation,
-                // тому "14:30·15.05" малюємо по одному символу на рядок.
+                // Права колонка — час + дата повернуті на -90° (як iOS)
                 val whenText = buildString {
                     if (time.isNotEmpty()) append(time)
                     if (time.isNotEmpty() && date.isNotEmpty()) append("·")
                     if (date.isNotEmpty()) append(date)
                 }
                 if (whenText.isNotEmpty()) {
-                    Column(
-                        horizontalAlignment = Alignment.Horizontal.End,
-                        verticalAlignment   = Alignment.Vertical.CenterVertically,
-                        modifier            = GlanceModifier.padding(start = 4.dp)
+                    Spacer(GlanceModifier.width(2.dp))
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier         = GlanceModifier.width(12.dp).fillMaxSize()
                     ) {
-                        VerticalText(
-                            whenText,
-                            color    = ColorProvider(dim),
-                            fontSize = 9.sp,
-                            bold     = true
+                        RotatedVerticalText(
+                            text       = whenText,
+                            color      = dim,
+                            fontSizeSp = 9f,
+                            bold       = true
                         )
                     }
                 }
@@ -156,60 +151,34 @@ abstract class CurrencyWidget(private val source: CurrencySource) : GlanceAppWid
     }
 
     /**
-     * Рядок курсу. Якщо джерело hasBidAsk — показуємо bid/ask двома рядками з ↓/↑.
-     * Інакше — single rate в один рядок з лейблом.
+     * Компактний rate-рядок: "$ 43.97" для single, "$ 43.6/44.2" для bid/ask.
+     * Все в один рядок щоб уся валюта займала ~12dp висоти.
      */
     @Composable
-    private fun RateRow(
-        label: String,
+    private fun CompactRateRow(
+        symbol: String,
         color: Color,
         hasBidAsk: Boolean,
         bid: Double?, ask: Double?, rate: Double?
     ) {
-        if (hasBidAsk && bid != null && ask != null) {
-            Column {
-                Text(
-                    label,
-                    style = TextStyle(
-                        color    = ColorProvider(color.copy(alpha = 0.75f)),
-                        fontSize = 12.sp
-                    )
-                )
-                Row(verticalAlignment = Alignment.Vertical.CenterVertically) {
-                    Text("↓ ", style = TextStyle(color = ColorProvider(color.copy(alpha = 0.55f)), fontSize = 11.sp))
-                    Text(
-                        String.format(Locale("uk", "UA"), "%.2f", bid),
-                        style = TextStyle(color = ColorProvider(color), fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    )
-                }
-                Row(verticalAlignment = Alignment.Vertical.CenterVertically) {
-                    Text("↑ ", style = TextStyle(color = ColorProvider(color.copy(alpha = 0.55f)), fontSize = 11.sp))
-                    Text(
-                        String.format(Locale("uk", "UA"), "%.2f", ask),
-                        style = TextStyle(color = ColorProvider(color), fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    )
-                }
-            }
-        } else {
-            // Single rate (НБУ або fallback) — компактний рядок "USD  43,97"
-            Row(verticalAlignment = Alignment.Vertical.CenterVertically) {
-                Text(
-                    "$label ",
-                    style = TextStyle(
-                        color    = ColorProvider(color.copy(alpha = 0.75f)),
-                        fontSize = 12.sp
-                    )
-                )
-                Text(
-                    rate?.let { String.format(Locale("uk", "UA"), "%.2f", it) } ?: "—",
-                    style = TextStyle(
-                        color      = ColorProvider(color),
-                        fontSize   = 22.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-            }
+        val text = when {
+            hasBidAsk && bid != null && ask != null ->
+                "$symbol " +
+                String.format(Locale("uk", "UA"), "%.2f", bid) +
+                "/" +
+                String.format(Locale("uk", "UA"), "%.2f", ask)
+            rate != null ->
+                "$symbol " + String.format(Locale("uk", "UA"), "%.2f", rate)
+            else -> "$symbol —"
         }
+        Text(
+            text,
+            style = TextStyle(
+                color      = ColorProvider(color),
+                fontSize   = 11.sp,
+                fontWeight = FontWeight.Bold
+            )
+        )
     }
 }
 
