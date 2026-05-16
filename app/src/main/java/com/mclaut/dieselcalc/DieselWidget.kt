@@ -122,26 +122,26 @@ class DieselWidget : GlanceAppWidget() {
                     )
                 }
 
-                // Права колонка — час і дата вертикально, прижаті до правого краю
-                Column(
-                    horizontalAlignment = Alignment.Horizontal.End,
-                    verticalAlignment   = Alignment.Vertical.CenterVertically,
-                    modifier            = GlanceModifier.padding(start = 4.dp)
-                ) {
-                    if (time.isNotEmpty()) {
-                        Text(
-                            time,
-                            style = TextStyle(
-                                color      = ColorProvider(dim),
-                                fontSize   = 13.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                        )
-                    }
-                    if (date.isNotEmpty()) {
-                        Text(
-                            date,
-                            style = TextStyle(color = ColorProvider(dim), fontSize = 10.sp)
+                // Права колонка — час і дата у вигляді одного вертикального
+                // стека (char-per-line), прижатого до правого краю. Glance не
+                // підтримує rotation, тому "14:30·15.05" малюємо по одному
+                // символу на рядок зверху вниз.
+                val whenText = buildString {
+                    if (time.isNotEmpty()) append(time)
+                    if (time.isNotEmpty() && date.isNotEmpty()) append("·")
+                    if (date.isNotEmpty()) append(date)
+                }
+                if (whenText.isNotEmpty()) {
+                    Column(
+                        horizontalAlignment = Alignment.Horizontal.End,
+                        verticalAlignment   = Alignment.Vertical.CenterVertically,
+                        modifier            = GlanceModifier.padding(start = 4.dp)
+                    ) {
+                        VerticalText(
+                            whenText,
+                            color    = ColorProvider(dim),
+                            fontSize = 9.sp,
+                            bold     = true
                         )
                     }
                 }
