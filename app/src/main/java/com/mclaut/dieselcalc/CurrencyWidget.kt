@@ -60,6 +60,9 @@ abstract class CurrencyWidget(private val source: CurrencySource) : GlanceAppWid
     override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
+        // Гарантуємо що дані завантажені перед першим рендером усіх 4
+        // currency-віджетів. TTL у DataSync дедуплікує одночасні виклики.
+        WidgetDataSync.refresh(context)
         provideContent { Content() }
     }
 

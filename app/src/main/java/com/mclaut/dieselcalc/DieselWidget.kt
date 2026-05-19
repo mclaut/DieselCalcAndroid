@@ -48,6 +48,10 @@ class DieselWidget : GlanceAppWidget() {
     override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
+        // Гарантуємо що дані завантажені перед першим рендером віджета
+        // (якщо WorkManager не встиг або був заблокований constraint'ами).
+        // TTL у DataSync дедуплікує паралельні виклики від 5 widget'ів.
+        WidgetDataSync.refresh(context)
         provideContent { Content() }
     }
 
