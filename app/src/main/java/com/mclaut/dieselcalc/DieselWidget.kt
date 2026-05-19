@@ -75,58 +75,63 @@ class DieselWidget : GlanceAppWidget() {
         val iceMain        = if (isDark) Color(0xD9FFFFFF) else Color(0xBF000000)
         val dim            = if (isDark) Color(0x99FFFFFF) else Color(0x99000000)
 
+        // Tall 1×2 layout: ~70×140dp. Ліва вузька колонка з 3 секціями,
+        // права rotated дата по всій висоті.
         Box(
             modifier = GlanceModifier
                 .fillMaxSize()
                 .cornerRadius(16.dp)
                 .background(bg)
-                .padding(start = 10.dp, top = 8.dp, bottom = 8.dp, end = 6.dp)
+                .padding(start = 8.dp, top = 8.dp, bottom = 8.dp, end = 4.dp)
         ) {
             Row(
                 modifier          = GlanceModifier.fillMaxSize(),
                 verticalAlignment = Alignment.Vertical.CenterVertically
             ) {
-                // Ліва колонка — Вигрузка / Кордон / ICE Gasoil
                 Column(modifier = GlanceModifier.defaultWeight()) {
                     Text(
                         "Вигрузка",
-                        style = TextStyle(color = ColorProvider(orangeDim), fontSize = 11.sp)
+                        style = TextStyle(color = ColorProvider(orangeDim), fontSize = 10.sp)
                     )
                     Text(
                         delivery,
                         style = TextStyle(
                             color      = ColorProvider(orangeMain),
-                            fontSize   = 22.sp,
+                            fontSize   = 16.sp,
                             fontWeight = FontWeight.Bold
                         )
                     )
-                    Spacer(GlanceModifier.height(4.dp))
+                    Spacer(GlanceModifier.height(6.dp))
 
                     Text(
                         "Кордон",
-                        style = TextStyle(color = ColorProvider(brandIndigoDim), fontSize = 11.sp)
+                        style = TextStyle(color = ColorProvider(brandIndigoDim), fontSize = 10.sp)
                     )
                     Text(
                         border,
                         style = TextStyle(
                             color      = ColorProvider(brandIndigo),
-                            fontSize   = 18.sp,
+                            fontSize   = 14.sp,
                             fontWeight = FontWeight.Bold
                         )
                     )
-                    Spacer(GlanceModifier.height(4.dp))
+                    Spacer(GlanceModifier.height(6.dp))
 
                     Text(
-                        "ICE \$$ice",
+                        "ICE",
+                        style = TextStyle(color = ColorProvider(iceMain.copy(alpha = 0.7f)), fontSize = 9.sp)
+                    )
+                    Text(
+                        "\$$ice",
                         style = TextStyle(
                             color      = ColorProvider(iceMain),
-                            fontSize   = 11.sp,
-                            fontWeight = FontWeight.Medium
+                            fontSize   = 12.sp,
+                            fontWeight = FontWeight.Bold
                         )
                     )
                 }
 
-                // Права колонка — час + дата повернуті на -90° (як iOS).
+                // Права rotated дата по всій висоті
                 val whenText = buildString {
                     if (time.isNotEmpty()) append(time)
                     if (time.isNotEmpty() && date.isNotEmpty()) append("·")
@@ -136,7 +141,7 @@ class DieselWidget : GlanceAppWidget() {
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier         = GlanceModifier
-                            .width(14.dp)
+                            .width(12.dp)
                             .fillMaxHeight()
                     ) {
                         RotatedVerticalText(

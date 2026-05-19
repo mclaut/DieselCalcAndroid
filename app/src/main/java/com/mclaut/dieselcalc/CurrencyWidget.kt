@@ -88,45 +88,54 @@ abstract class CurrencyWidget(private val source: CurrencySource) : GlanceAppWid
         val time    = prefs[timePref(source.key)] ?: ""
         val date    = prefs[datePref(source.key)] ?: ""
 
+        // Tall 1×2 layout (~70×140dp): джерело + USD + EUR + крос вертикально
+        // одна на одною. Bid/ask стекаються двома лініями замість слешу.
         Box(
             modifier = GlanceModifier
                 .fillMaxSize()
                 .cornerRadius(16.dp)
                 .background(bg)
-                .padding(start = 10.dp, top = 8.dp, bottom = 8.dp, end = 6.dp)
+                .padding(start = 8.dp, top = 6.dp, bottom = 6.dp, end = 4.dp)
         ) {
             Row(
                 modifier          = GlanceModifier.fillMaxSize(),
                 verticalAlignment = Alignment.Vertical.CenterVertically
             ) {
-                // Ліва колонка — джерело + USD + EUR + крос-курс
                 Column(modifier = GlanceModifier.defaultWeight()) {
                     Text(
                         source.displayName,
                         style = TextStyle(
                             color      = ColorProvider(header),
-                            fontSize   = 12.sp,
+                            fontSize   = 10.sp,
                             fontWeight = FontWeight.Bold
-                        )
+                        ),
+                        maxLines = 1
                     )
                     Spacer(GlanceModifier.height(4.dp))
-                    CompactRateRow("USD", usdColor, source.hasBidAsk, usdBid, usdAsk, usdRate)
-                    Spacer(GlanceModifier.height(2.dp))
-                    CompactRateRow("EUR", eurColor, source.hasBidAsk, eurBid, eurAsk, eurRate)
+                    TallRateBlock("USD", usdColor, source.hasBidAsk, usdBid, usdAsk, usdRate)
+                    Spacer(GlanceModifier.height(3.dp))
+                    TallRateBlock("EUR", eurColor, source.hasBidAsk, eurBid, eurAsk, eurRate)
                     if (cross != null) {
                         Spacer(GlanceModifier.height(3.dp))
                         Text(
-                            "€/\$ ${String.format(Locale.US, "%.4f", cross)}",
+                            "€/\$",
+                            style = TextStyle(
+                                color    = ColorProvider(crossColor.copy(alpha = 0.7f)),
+                                fontSize = 9.sp
+                            )
+                        )
+                        Text(
+                            String.format(Locale.US, "%.4f", cross),
                             style = TextStyle(
                                 color      = ColorProvider(crossColor),
-                                fontSize   = 11.sp,
-                                fontWeight = FontWeight.Medium
+                                fontSize   = 12.sp,
+                                fontWeight = FontWeight.Bold
                             )
                         )
                     }
                 }
 
-                // Права колонка — час + дата повернуті на -90° (як iOS)
+                // Права rotated дата по всій висоті
                 val whenText = buildString {
                     if (time.isNotEmpty()) append(time)
                     if (time.isNotEmpty() && date.isNotEmpty()) append("·")
@@ -136,7 +145,7 @@ abstract class CurrencyWidget(private val source: CurrencySource) : GlanceAppWid
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier         = GlanceModifier
-                            .width(14.dp)
+                            .width(12.dp)
                             .fillMaxHeight()
                     ) {
                         RotatedVerticalText(
@@ -152,44 +161,51 @@ abstract class CurrencyWidget(private val source: CurrencySource) : GlanceAppWid
     }
 
     /**
-     * Компактний rate-рядок: "USD 43,97" для single, "USD 43,60/44,20" для
-     * bid/ask. Single — 17sp щоб помітно (там багато простору без bid/ask),
-     * bid/ask — 13sp бо довший рядок.
+     * Блок курсу для tall (вузького) layout: лейбл валюти + значення стеком.
+     * Single rate — одне число; bid/ask — два числа на окремих рядках, з
+     * ↓/↑ перед кожним щоб було видно купівля/продаж.
      */
     @Composable
-    private fun CompactRateRow(
+    private fun TallRateBlock(
         label: String,
         color: Color,
         hasBidAsk: Boolean,
         bid: Double?, ask: Double?, rate: Double?
     ) {
-        val text: String
-        val size: androidx.compose.ui.unit.TextUnit
-        when {
-            hasBidAsk && bid != null && ask != null -> {
-                text = "$label " +
-                    String.format(Locale("uk", "UA"), "%.2f", bid) +
-                    "/" +
-                    String.format(Locale("uk", "UA"), "%.2f", ask)
-                size = 13.sp
-            }
-            rate != null -> {
-                text = "$label " + String.format(Locale("uk", "UA"), "%.2f", rate)
-                size = 17.sp
-            }
-            else -> {
-                text = "$label —"
-                size = 15.sp
-            }
-        }
         Text(
-            text,
+            label,
             style = TextStyle(
-                color      = ColorProvider(color),
-                fontSize   = size,
-                fontWeight = FontWeight.Bold
+                color    = ColorProvider(color.copy(alpha = 0.75f)),
+                fontSize = 9.sp
             )
         )
+        if (hasBidAsk && bid != null && ask != null) {
+            Text(
+                "↓" + String.format(Locale("uk", "UA"), "%.2f", bid),
+                style = TextStyle(
+                    color      = ColorProvider(color),
+                    fontSize   = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            )
+            Text(
+                "↑" + String.format(Locale("uk", "UA"), "%.2f", ask),
+                style = TextStyle(
+                    color      = ColorProvider(color),
+                    fontSize   = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            )
+        } else {
+            Text(
+                rate?.let { String.format(Locale("uk", "UA"), "%.2f", it) } ?: "—",
+                style = TextStyle(
+                    color      = ColorProvider(color),
+                    fontSize   = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            )
+        }
     }
 }
 
