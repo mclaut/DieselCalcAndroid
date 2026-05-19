@@ -107,20 +107,38 @@ abstract class CurrencyWidget(private val source: CurrencySource) : GlanceAppWid
                 verticalAlignment = Alignment.Vertical.CenterVertically
             ) {
                 Column(modifier = GlanceModifier.defaultWeight()) {
-                    Text(
-                        source.displayName,
-                        style = TextStyle(
-                            color      = ColorProvider(header),
-                            fontSize   = 10.sp,
-                            fontWeight = FontWeight.Bold
-                        ),
-                        maxLines = 1
-                    )
-                    Spacer(GlanceModifier.height(2.dp))
+                    // Верхній рядок: джерело + крос-курс справа на тому ж рядку
+                    Row(
+                        modifier          = GlanceModifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.Vertical.CenterVertically
+                    ) {
+                        Text(
+                            source.displayName,
+                            style = TextStyle(
+                                color      = ColorProvider(header),
+                                fontSize   = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            ),
+                            maxLines = 1,
+                            modifier = GlanceModifier.defaultWeight()
+                        )
+                        if (cross != null) {
+                            Text(
+                                "€/\$ " + String.format(Locale.US, "%.4f", cross),
+                                style = TextStyle(
+                                    color      = ColorProvider(crossColor),
+                                    fontSize   = 11.sp,
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                maxLines = 1
+                            )
+                        }
+                    }
+                    Spacer(GlanceModifier.height(3.dp))
+                    // 2 колонки валют (USD + EUR) — більше місця для bid/ask
                     Row(modifier = GlanceModifier.fillMaxWidth()) {
                         WideRateColumn("USD", usdColor, source.hasBidAsk, usdBid, usdAsk, usdRate)
                         WideRateColumn("EUR", eurColor, source.hasBidAsk, eurBid, eurAsk, eurRate)
-                        WideCrossColumn("€/\$", crossColor, cross)
                     }
                 }
 
@@ -150,8 +168,13 @@ abstract class CurrencyWidget(private val source: CurrencySource) : GlanceAppWid
     }
 
     /**
-     * Колонка курсу для wide layout: лейбл валюти зверху, значення під ним.
-     * Single rate — одне число 15sp; bid/ask — компактний "X/Y" формат 11sp.
+     * Колонка курсу для wide 2-column layout: лейбл валюти + значення.
+     * Тепер тільки 2 колонки (USD + EUR), крос виносимо в верхній рядок
+     * до джерела — це дає по 50dp ширини на колонку замість 35dp,
+     * тому bid/ask можна показувати на 2 рядках бóльшим шрифтом.
+     *
+     * Single rate (НБУ) — одне число 18sp.
+     * Bid/ask (Privat/Міжбанк) — два числа стеком, ↓bid + ↑ask по 16sp.
      */
     @Composable
     private fun androidx.glance.layout.RowScope.WideRateColumn(
@@ -165,16 +188,24 @@ abstract class CurrencyWidget(private val source: CurrencySource) : GlanceAppWid
                 label,
                 style = TextStyle(
                     color    = ColorProvider(color.copy(alpha = 0.75f)),
-                    fontSize = 9.sp
+                    fontSize = 10.sp
                 )
             )
             if (hasBidAsk && bid != null && ask != null) {
                 Text(
-                    String.format(Locale("uk", "UA"), "%.2f", bid) + "/" +
-                        String.format(Locale("uk", "UA"), "%.2f", ask),
+                    "↓" + String.format(Locale("uk", "UA"), "%.2f", bid),
                     style = TextStyle(
                         color      = ColorProvider(color),
-                        fontSize   = 11.sp,
+                        fontSize   = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    maxLines = 1
+                )
+                Text(
+                    "↑" + String.format(Locale("uk", "UA"), "%.2f", ask),
+                    style = TextStyle(
+                        color      = ColorProvider(color),
+                        fontSize   = 16.sp,
                         fontWeight = FontWeight.Bold
                     ),
                     maxLines = 1
@@ -184,36 +215,11 @@ abstract class CurrencyWidget(private val source: CurrencySource) : GlanceAppWid
                     rate?.let { String.format(Locale("uk", "UA"), "%.2f", it) } ?: "—",
                     style = TextStyle(
                         color      = ColorProvider(color),
-                        fontSize   = 15.sp,
+                        fontSize   = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
                 )
             }
-        }
-    }
-
-    @Composable
-    private fun androidx.glance.layout.RowScope.WideCrossColumn(
-        label: String,
-        color: Color,
-        cross: Double?
-    ) {
-        Column(modifier = GlanceModifier.defaultWeight()) {
-            Text(
-                label,
-                style = TextStyle(
-                    color    = ColorProvider(color.copy(alpha = 0.75f)),
-                    fontSize = 9.sp
-                )
-            )
-            Text(
-                cross?.let { String.format(Locale.US, "%.4f", it) } ?: "—",
-                style = TextStyle(
-                    color      = ColorProvider(color),
-                    fontSize   = 11.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            )
         }
     }
 }
