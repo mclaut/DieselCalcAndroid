@@ -75,19 +75,20 @@ class DieselWidget : GlanceAppWidget() {
         val iceMain        = if (isDark) Color(0xD9FFFFFF) else Color(0xBF000000)
         val dim            = if (isDark) Color(0x99FFFFFF) else Color(0x99000000)
 
-        // Tall 1×2 layout: ~70×140dp. Ліва вузька колонка з 3 секціями,
-        // права rotated дата по всій висоті.
+        // Wide 2×1 layout: ~155×70dp. 3 секції горизонтально (Вигрузка /
+        // Кордон / ICE), rotated дата справа по всій висоті.
         Box(
             modifier = GlanceModifier
                 .fillMaxSize()
                 .cornerRadius(16.dp)
                 .background(bg)
-                .padding(start = 8.dp, top = 8.dp, bottom = 8.dp, end = 4.dp)
+                .padding(start = 10.dp, top = 6.dp, bottom = 6.dp, end = 4.dp)
         ) {
             Row(
                 modifier          = GlanceModifier.fillMaxSize(),
                 verticalAlignment = Alignment.Vertical.CenterVertically
             ) {
+                // Колонка 1 — Вигрузка
                 Column(modifier = GlanceModifier.defaultWeight()) {
                     Text(
                         "Вигрузка",
@@ -97,12 +98,14 @@ class DieselWidget : GlanceAppWidget() {
                         delivery,
                         style = TextStyle(
                             color      = ColorProvider(orangeMain),
-                            fontSize   = 16.sp,
+                            fontSize   = 18.sp,
                             fontWeight = FontWeight.Bold
                         )
                     )
-                    Spacer(GlanceModifier.height(6.dp))
+                }
 
+                // Колонка 2 — Кордон
+                Column(modifier = GlanceModifier.defaultWeight()) {
                     Text(
                         "Кордон",
                         style = TextStyle(color = ColorProvider(brandIndigoDim), fontSize = 10.sp)
@@ -111,12 +114,14 @@ class DieselWidget : GlanceAppWidget() {
                         border,
                         style = TextStyle(
                             color      = ColorProvider(brandIndigo),
-                            fontSize   = 14.sp,
+                            fontSize   = 16.sp,
                             fontWeight = FontWeight.Bold
                         )
                     )
-                    Spacer(GlanceModifier.height(6.dp))
+                }
 
+                // Колонка 3 — ICE Gasoil
+                Column(modifier = GlanceModifier.defaultWeight()) {
                     Text(
                         "ICE",
                         style = TextStyle(color = ColorProvider(iceMain.copy(alpha = 0.7f)), fontSize = 9.sp)
@@ -125,7 +130,7 @@ class DieselWidget : GlanceAppWidget() {
                         "\$$ice",
                         style = TextStyle(
                             color      = ColorProvider(iceMain),
-                            fontSize   = 12.sp,
+                            fontSize   = 13.sp,
                             fontWeight = FontWeight.Bold
                         )
                     )

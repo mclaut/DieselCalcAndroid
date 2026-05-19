@@ -24,6 +24,7 @@ import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxHeight
 import androidx.glance.layout.fillMaxSize
+import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.width
@@ -88,14 +89,15 @@ abstract class CurrencyWidget(private val source: CurrencySource) : GlanceAppWid
         val time    = prefs[timePref(source.key)] ?: ""
         val date    = prefs[datePref(source.key)] ?: ""
 
-        // Tall 1×2 layout (~70×140dp): джерело + USD + EUR + крос вертикально
-        // одна на одною. Bid/ask стекаються двома лініями замість слешу.
+        // Wide 2×1 layout (~155×70dp). Зверху джерело, нижче три рівнозначні
+        // колонки з курсами: USD / EUR / €/$. Bid/ask стискаємо у "X/Y" формат
+        // щоб помістилось у тонку колонку.
         Box(
             modifier = GlanceModifier
                 .fillMaxSize()
                 .cornerRadius(16.dp)
                 .background(bg)
-                .padding(start = 8.dp, top = 6.dp, bottom = 6.dp, end = 4.dp)
+                .padding(start = 10.dp, top = 4.dp, bottom = 4.dp, end = 4.dp)
         ) {
             Row(
                 modifier          = GlanceModifier.fillMaxSize(),
@@ -111,27 +113,11 @@ abstract class CurrencyWidget(private val source: CurrencySource) : GlanceAppWid
                         ),
                         maxLines = 1
                     )
-                    Spacer(GlanceModifier.height(4.dp))
-                    TallRateBlock("USD", usdColor, source.hasBidAsk, usdBid, usdAsk, usdRate)
-                    Spacer(GlanceModifier.height(3.dp))
-                    TallRateBlock("EUR", eurColor, source.hasBidAsk, eurBid, eurAsk, eurRate)
-                    if (cross != null) {
-                        Spacer(GlanceModifier.height(3.dp))
-                        Text(
-                            "€/\$",
-                            style = TextStyle(
-                                color    = ColorProvider(crossColor.copy(alpha = 0.7f)),
-                                fontSize = 9.sp
-                            )
-                        )
-                        Text(
-                            String.format(Locale.US, "%.4f", cross),
-                            style = TextStyle(
-                                color      = ColorProvider(crossColor),
-                                fontSize   = 12.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        )
+                    Spacer(GlanceModifier.height(2.dp))
+                    Row(modifier = GlanceModifier.fillMaxWidth()) {
+                        WideRateColumn("USD", usdColor, source.hasBidAsk, usdBid, usdAsk, usdRate)
+                        WideRateColumn("EUR", eurColor, source.hasBidAsk, eurBid, eurAsk, eurRate)
+                        WideCrossColumn("€/\$", crossColor, cross)
                     }
                 }
 
@@ -161,47 +147,67 @@ abstract class CurrencyWidget(private val source: CurrencySource) : GlanceAppWid
     }
 
     /**
-     * Блок курсу для tall (вузького) layout: лейбл валюти + значення стеком.
-     * Single rate — одне число; bid/ask — два числа на окремих рядках, з
-     * ↓/↑ перед кожним щоб було видно купівля/продаж.
+     * Колонка курсу для wide layout: лейбл валюти зверху, значення під ним.
+     * Single rate — одне число 15sp; bid/ask — компактний "X/Y" формат 11sp.
      */
     @Composable
-    private fun TallRateBlock(
+    private fun androidx.glance.layout.RowScope.WideRateColumn(
         label: String,
         color: Color,
         hasBidAsk: Boolean,
         bid: Double?, ask: Double?, rate: Double?
     ) {
-        Text(
-            label,
-            style = TextStyle(
-                color    = ColorProvider(color.copy(alpha = 0.75f)),
-                fontSize = 9.sp
-            )
-        )
-        if (hasBidAsk && bid != null && ask != null) {
+        Column(modifier = GlanceModifier.defaultWeight()) {
             Text(
-                "↓" + String.format(Locale("uk", "UA"), "%.2f", bid),
+                label,
                 style = TextStyle(
-                    color      = ColorProvider(color),
-                    fontSize   = 12.sp,
-                    fontWeight = FontWeight.Bold
+                    color    = ColorProvider(color.copy(alpha = 0.75f)),
+                    fontSize = 9.sp
+                )
+            )
+            if (hasBidAsk && bid != null && ask != null) {
+                Text(
+                    String.format(Locale("uk", "UA"), "%.2f", bid) + "/" +
+                        String.format(Locale("uk", "UA"), "%.2f", ask),
+                    style = TextStyle(
+                        color      = ColorProvider(color),
+                        fontSize   = 11.sp,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    maxLines = 1
+                )
+            } else {
+                Text(
+                    rate?.let { String.format(Locale("uk", "UA"), "%.2f", it) } ?: "—",
+                    style = TextStyle(
+                        color      = ColorProvider(color),
+                        fontSize   = 15.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun androidx.glance.layout.RowScope.WideCrossColumn(
+        label: String,
+        color: Color,
+        cross: Double?
+    ) {
+        Column(modifier = GlanceModifier.defaultWeight()) {
+            Text(
+                label,
+                style = TextStyle(
+                    color    = ColorProvider(color.copy(alpha = 0.75f)),
+                    fontSize = 9.sp
                 )
             )
             Text(
-                "↑" + String.format(Locale("uk", "UA"), "%.2f", ask),
+                cross?.let { String.format(Locale.US, "%.4f", it) } ?: "—",
                 style = TextStyle(
                     color      = ColorProvider(color),
-                    fontSize   = 12.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            )
-        } else {
-            Text(
-                rate?.let { String.format(Locale("uk", "UA"), "%.2f", it) } ?: "—",
-                style = TextStyle(
-                    color      = ColorProvider(color),
-                    fontSize   = 16.sp,
+                    fontSize   = 11.sp,
                     fontWeight = FontWeight.Bold
                 )
             )
