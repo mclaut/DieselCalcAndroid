@@ -31,8 +31,8 @@ android {
         applicationId = "com.mclaut.dieselcalc"
         minSdk = 24
         targetSdk = 36
-        versionCode = 5
-        versionName = "1.4.3"
+        versionCode = 6
+        versionName = "1.4.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

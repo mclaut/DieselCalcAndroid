@@ -12,6 +12,7 @@ import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.LocalContext
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
 import androidx.glance.currentState
@@ -20,6 +21,7 @@ import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
+import androidx.glance.layout.fillMaxHeight
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
@@ -62,8 +64,10 @@ class DieselWidget : GlanceAppWidget() {
         val isDark  = (ctx.resources.configuration.uiMode and
                 Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
 
-        // McLaut brand-палітра.
-        val bg             = if (isDark) Color(0xFF000000) else Color(0xFFF2F2F2)
+        // McLaut brand-палітра + читабельний фон. Pure #000 зливається з
+        // темними шпалерами користувача — беремо чуть світліший Material
+        // dark surface (#1C1C1E), а для світлої теми Apple-style #F2F2F7.
+        val bg             = if (isDark) Color(0xFF1C1C1E) else Color(0xFFF2F2F7)
         val orangeMain     = Brand.Orange
         val orangeDim      = Brand.Orange.copy(alpha = 0.80f)
         val brandIndigo    = Brand.darkAccent(isDark)
@@ -74,69 +78,71 @@ class DieselWidget : GlanceAppWidget() {
         Box(
             modifier = GlanceModifier
                 .fillMaxSize()
+                .cornerRadius(16.dp)
                 .background(bg)
-                .padding(start = 6.dp, top = 6.dp, bottom = 6.dp, end = 4.dp)
+                .padding(start = 10.dp, top = 8.dp, bottom = 8.dp, end = 6.dp)
         ) {
             Row(
                 modifier          = GlanceModifier.fillMaxSize(),
                 verticalAlignment = Alignment.Vertical.CenterVertically
             ) {
-                // Ліва колонка — Вигрузка / Кордон / ICE (компактно під 70dp)
+                // Ліва колонка — Вигрузка / Кордон / ICE Gasoil
                 Column(modifier = GlanceModifier.defaultWeight()) {
                     Text(
                         "Вигрузка",
-                        style = TextStyle(color = ColorProvider(orangeDim), fontSize = 9.sp)
+                        style = TextStyle(color = ColorProvider(orangeDim), fontSize = 11.sp)
                     )
                     Text(
                         delivery,
                         style = TextStyle(
                             color      = ColorProvider(orangeMain),
-                            fontSize   = 15.sp,
+                            fontSize   = 22.sp,
                             fontWeight = FontWeight.Bold
                         )
                     )
-                    Spacer(GlanceModifier.height(2.dp))
+                    Spacer(GlanceModifier.height(4.dp))
 
                     Text(
                         "Кордон",
-                        style = TextStyle(color = ColorProvider(brandIndigoDim), fontSize = 9.sp)
+                        style = TextStyle(color = ColorProvider(brandIndigoDim), fontSize = 11.sp)
                     )
                     Text(
                         border,
                         style = TextStyle(
                             color      = ColorProvider(brandIndigo),
-                            fontSize   = 13.sp,
+                            fontSize   = 18.sp,
                             fontWeight = FontWeight.Bold
                         )
                     )
-                    Spacer(GlanceModifier.height(2.dp))
+                    Spacer(GlanceModifier.height(4.dp))
 
                     Text(
                         "ICE \$$ice",
                         style = TextStyle(
                             color      = ColorProvider(iceMain),
-                            fontSize   = 10.sp,
+                            fontSize   = 11.sp,
                             fontWeight = FontWeight.Medium
                         )
                     )
                 }
 
-                // Права колонка — час + дата ВЕРТИКАЛЬНО (повернуто -90°), як в iOS.
+                // Права колонка — час + дата повернуті на -90° (як iOS).
                 val whenText = buildString {
                     if (time.isNotEmpty()) append(time)
                     if (time.isNotEmpty() && date.isNotEmpty()) append("·")
                     if (date.isNotEmpty()) append(date)
                 }
                 if (whenText.isNotEmpty()) {
-                    Spacer(GlanceModifier.width(2.dp))
                     Box(
                         contentAlignment = Alignment.Center,
-                        modifier         = GlanceModifier.width(12.dp).fillMaxSize()
+                        modifier         = GlanceModifier
+                            .width(14.dp)
+                            .fillMaxHeight()
                     ) {
                         RotatedVerticalText(
                             text       = whenText,
                             color      = dim,
-                            fontSizeSp = 9f,
+                            fontSizeSp = 8f,
                             bold       = true
                         )
                     }

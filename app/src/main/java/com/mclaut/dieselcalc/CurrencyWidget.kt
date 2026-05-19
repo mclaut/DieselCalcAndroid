@@ -13,6 +13,7 @@ import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.LocalContext
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
 import androidx.glance.currentState
@@ -21,6 +22,7 @@ import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
+import androidx.glance.layout.fillMaxHeight
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
@@ -67,8 +69,9 @@ abstract class CurrencyWidget(private val source: CurrencySource) : GlanceAppWid
         val isDark = (ctx.resources.configuration.uiMode and
                 Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
 
-        // McLaut brand-палітра.
-        val bg         = if (isDark) Color(0xFF000000) else Color(0xFFF2F2F2)
+        // McLaut brand-палітра + читабельний фон (не pure-black щоб не
+        // зливалося з темними шпалерами).
+        val bg         = if (isDark) Color(0xFF1C1C1E) else Color(0xFFF2F2F7)
         val usdColor   = Brand.Orange
         val eurColor   = Brand.darkAccent(isDark)
         val crossColor = if (isDark) Color(0xD9FFFFFF) else Color(0xBF000000)
@@ -88,38 +91,35 @@ abstract class CurrencyWidget(private val source: CurrencySource) : GlanceAppWid
         Box(
             modifier = GlanceModifier
                 .fillMaxSize()
+                .cornerRadius(16.dp)
                 .background(bg)
-                .padding(start = 6.dp, top = 4.dp, bottom = 4.dp, end = 4.dp)
+                .padding(start = 10.dp, top = 8.dp, bottom = 8.dp, end = 6.dp)
         ) {
             Row(
                 modifier          = GlanceModifier.fillMaxSize(),
                 verticalAlignment = Alignment.Vertical.CenterVertically
             ) {
-                // Ліва колонка — компактно під 70dp:
-                // [source.short]
-                // USD <значення>  (одна лінія, навіть для bid/ask: "43.6/44.2")
-                // EUR <значення>
-                // €/$ <crossover>
+                // Ліва колонка — джерело + USD + EUR + крос-курс
                 Column(modifier = GlanceModifier.defaultWeight()) {
                     Text(
-                        source.short,
+                        source.displayName,
                         style = TextStyle(
                             color      = ColorProvider(header),
-                            fontSize   = 9.sp,
+                            fontSize   = 12.sp,
                             fontWeight = FontWeight.Bold
                         )
                     )
-                    Spacer(GlanceModifier.height(1.dp))
-                    CompactRateRow("$", usdColor, source.hasBidAsk, usdBid, usdAsk, usdRate)
-                    Spacer(GlanceModifier.height(1.dp))
-                    CompactRateRow("€", eurColor, source.hasBidAsk, eurBid, eurAsk, eurRate)
+                    Spacer(GlanceModifier.height(4.dp))
+                    CompactRateRow("USD", usdColor, source.hasBidAsk, usdBid, usdAsk, usdRate)
+                    Spacer(GlanceModifier.height(2.dp))
+                    CompactRateRow("EUR", eurColor, source.hasBidAsk, eurBid, eurAsk, eurRate)
                     if (cross != null) {
-                        Spacer(GlanceModifier.height(1.dp))
+                        Spacer(GlanceModifier.height(3.dp))
                         Text(
                             "€/\$ ${String.format(Locale.US, "%.4f", cross)}",
                             style = TextStyle(
-                                color    = ColorProvider(crossColor),
-                                fontSize = 9.sp,
+                                color      = ColorProvider(crossColor),
+                                fontSize   = 11.sp,
                                 fontWeight = FontWeight.Medium
                             )
                         )
@@ -133,15 +133,16 @@ abstract class CurrencyWidget(private val source: CurrencySource) : GlanceAppWid
                     if (date.isNotEmpty()) append(date)
                 }
                 if (whenText.isNotEmpty()) {
-                    Spacer(GlanceModifier.width(2.dp))
                     Box(
                         contentAlignment = Alignment.Center,
-                        modifier         = GlanceModifier.width(12.dp).fillMaxSize()
+                        modifier         = GlanceModifier
+                            .width(14.dp)
+                            .fillMaxHeight()
                     ) {
                         RotatedVerticalText(
                             text       = whenText,
                             color      = dim,
-                            fontSizeSp = 9f,
+                            fontSizeSp = 8f,
                             bold       = true
                         )
                     }
@@ -151,31 +152,41 @@ abstract class CurrencyWidget(private val source: CurrencySource) : GlanceAppWid
     }
 
     /**
-     * Компактний rate-рядок: "$ 43.97" для single, "$ 43.6/44.2" для bid/ask.
-     * Все в один рядок щоб уся валюта займала ~12dp висоти.
+     * Компактний rate-рядок: "USD 43,97" для single, "USD 43,60/44,20" для
+     * bid/ask. Single — 17sp щоб помітно (там багато простору без bid/ask),
+     * bid/ask — 13sp бо довший рядок.
      */
     @Composable
     private fun CompactRateRow(
-        symbol: String,
+        label: String,
         color: Color,
         hasBidAsk: Boolean,
         bid: Double?, ask: Double?, rate: Double?
     ) {
-        val text = when {
-            hasBidAsk && bid != null && ask != null ->
-                "$symbol " +
-                String.format(Locale("uk", "UA"), "%.2f", bid) +
-                "/" +
-                String.format(Locale("uk", "UA"), "%.2f", ask)
-            rate != null ->
-                "$symbol " + String.format(Locale("uk", "UA"), "%.2f", rate)
-            else -> "$symbol —"
+        val text: String
+        val size: androidx.compose.ui.unit.TextUnit
+        when {
+            hasBidAsk && bid != null && ask != null -> {
+                text = "$label " +
+                    String.format(Locale("uk", "UA"), "%.2f", bid) +
+                    "/" +
+                    String.format(Locale("uk", "UA"), "%.2f", ask)
+                size = 13.sp
+            }
+            rate != null -> {
+                text = "$label " + String.format(Locale("uk", "UA"), "%.2f", rate)
+                size = 17.sp
+            }
+            else -> {
+                text = "$label —"
+                size = 15.sp
+            }
         }
         Text(
             text,
             style = TextStyle(
                 color      = ColorProvider(color),
-                fontSize   = 11.sp,
+                fontSize   = size,
                 fontWeight = FontWeight.Bold
             )
         )
