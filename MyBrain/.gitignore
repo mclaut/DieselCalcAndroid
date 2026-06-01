@@ -1,0 +1,35 @@
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+*.xcuserdatad/
+xcuserdata/
+
+# Generated project (regenerate with `xcodegen generate`)
+MyBrain.xcodeproj/
+
+# Swift Package Manager
+.swiftpm/
+Package.resolved
+.build/
+
+# CocoaPods / Carthage (not used)
+Pods/
+Carthage/Build/
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+# Secrets — never commit
+*.p8
+*.p12
+*.cer
+*.mobileprovision
+Secrets.xcconfig
+.env
+
+# macOS
+.DS_Store

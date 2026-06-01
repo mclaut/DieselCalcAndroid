@@ -1,0 +1,68 @@
+name: MyBrain
+options:
+  bundleIdPrefix: com.mclaut
+  deploymentTarget:
+    iOS: "18.0"
+  developmentLanguage: en
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.10"
+    IPHONEOS_DEPLOYMENT_TARGET: "18.0"
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    SWIFT_STRICT_CONCURRENCY: complete
+    CURRENT_PROJECT_VERSION: "1"
+    MARKETING_VERSION: "0.1.0"
+
+targets:
+  MyBrain:
+    type: application
+    platform: iOS
+    sources:
+      - path: MyBrain
+        excludes:
+          - "**/*.md"
+    resources:
+      - path: MyBrain/Resources
+        optional: true
+    info:
+      path: MyBrain/Info.plist
+    entitlements:
+      path: MyBrain/MyBrain.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.mclaut.mybrain
+        TARGETED_DEVICE_FAMILY: "1,2"
+        INFOPLIST_FILE: MyBrain/Info.plist
+        CODE_SIGN_ENTITLEMENTS: MyBrain/MyBrain.entitlements
+        SWIFT_EMIT_LOC_STRINGS: YES
+        GENERATE_INFOPLIST_FILE: NO
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+
+  MyBrainTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - MyBrainTests
+    dependencies:
+      - target: MyBrain
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.mclaut.mybrain.tests
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  MyBrain:
+    build:
+      targets:
+        MyBrain: all
+        MyBrainTests: [test]
+    test:
+      targets:
+        - MyBrainTests
+    run:
+      config: Debug
+    archive:
+      config: Release

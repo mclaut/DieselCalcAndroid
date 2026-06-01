@@ -14,6 +14,15 @@ local.properties
 .DS_Store
 Thumbs.db
 
+# Xcode / iOS (для MyBrain/)
+DerivedData/
+*.xcuserstate
+*.xcuserdatad/
+xcuserdata/
+MyBrain/MyBrain.xcodeproj/
+.swiftpm/
+Package.resolved
+
 # Kotlin
 *.class
 
